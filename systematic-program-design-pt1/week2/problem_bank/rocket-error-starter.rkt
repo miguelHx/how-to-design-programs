@@ -9,43 +9,43 @@
 ;; consistent.
 
 
-;;; =================
-;;; Data Definitions: 
-;
-;;; RocketDescent is one of:
-;;; - Number
-;;; - false
-;;; interp. false if rocket's descent has ended, otherwise number of kilometers
-;;;         left to Earth, restricted to (0, 100]
-;(define RD1 100)
-;(define RD2 40)
-;(define RD3 0.5)
-;(define RD4 false)
-;
-;#;
-;(define (fn-for-rocket-descent rd)
-;  (cond [(number? rd)
-;         (... rd)]
-;         [else  (...)]))
-;;; Template rules used:
-;;; one-of: 2 case
-;;; - atomic-non-distinct: Number
-;;; - atomic-distinct: false
+;; =================
+;; Data Definitions: 
 
-;
-;;; =================
-;;; Functions:
-;
-;;; RocketDescent -> Boolean
-;;; produce true if rocket's descent has ended; false if it's still descending
-;(check-expect (has-landed? 100) 100)
-;(check-expect (has-landed? 23) 23)
-;(check-expect (has-landed? 0.25) 0.25)
-;(check-expect (has-landed? false) true)
-;
-;;(define (has-landed? r) r) ; stub
-;
-;(define (has-landed? rd)
-;  (cond [(number? rd)
-;         false]
-;        [else true])) 
+;; RocketDescent is one of:
+;; - Number(0, 100]
+;; - false
+;; interp. false if rocket's descent has ended, otherwise number of kilometers
+;;         left to Earth, restricted to (0, 100]
+(define RD1 100)
+(define RD2 40)
+(define RD3 0.5)
+(define RD4 false)
+
+#;
+(define (fn-for-rocket-descent rd)
+  (cond [(number? rd)
+         (... rd)]
+         [else  (...)]))
+;; Template rules used:
+;; one-of: 2 case
+;; - atomic-non-distinct: Number(0, 100]
+;; - atomic-distinct: false
+
+
+; =================
+;; Functions:
+
+;; RocketDescent -> Boolean
+;; produce true if rocket's descent has ended; false if it's still descending
+(check-expect (has-landed? 100) false)
+(check-expect (has-landed? 23) false)
+(check-expect (has-landed? 0.25) false)
+(check-expect (has-landed? false) true)
+
+;(define (has-landed? r) r) ; stub
+
+(define (has-landed? rd)
+  (cond [(number? rd)
+         false]
+        [else true])) 
