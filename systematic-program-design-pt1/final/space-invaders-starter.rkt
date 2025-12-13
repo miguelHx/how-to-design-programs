@@ -12,7 +12,7 @@
 (define WIDTH  300)
 (define HEIGHT 500)
 
-(define INVADER-X-SPEED 1.5)  ;speeds (not velocities) in pixels per tick
+(define INVADER-X-SPEED 4)  ;speeds (not velocities) in pixels per tick
 (define INVADER-Y-SPEED 1.5)
 (define TANK-SPEED 2)
 (define MISSILE-SPEED 10)
@@ -94,8 +94,8 @@
 ;; Missile is (make-missile Number Number)
 ;; interp. the missile's location is x y in screen coordinates
 
-(define M1 (make-missile 150 300))                       ;not hit I1
-(define M2 (make-missile (invader-x I1) (+ (invader-y I1) 10)))  ;exactly hit I1
+(define M1 (make-missile 150 300))                               ;not hit I1
+(define M2 (make-missile (invader-x I1) (+ (invader-y I1) 8)))  ;exactly hit I1
 (define M3 (make-missile (invader-x I1) (+ (invader-y I1)  5)))  ;> hit I1
 
 #;
@@ -123,6 +123,14 @@
     (on-key  handle-key)      ; Game KeyEvent -> Game
     (stop-when handle-stop))) ; Game -> Boolean
 
+;; ListOfInvaders -> ListOfInvaders
+;; takes in a list of invaders and spawns new invader at random x position
+;; by returning same list with new invader appended
+(check-random (append-rand-invader (list I1 I2 I3)) (list (make-invader (random WIDTH) 0 INVADER-X-SPEED) I1 I2 I3))
+
+(define (append-rand-invader loi)
+  (cons (make-invader (random WIDTH) 0 INVADER-X-SPEED) loi))
+
 ;; Game -> Game
 ;; produce filtered and ticked game state
 (check-expect (next-game (make-game (list I1) (list M1) T0))
@@ -141,15 +149,68 @@
               (make-game (list (make-invader 162 101.5 12))
                          (list (make-missile 150 (- 300 MISSILE-SPEED)))
                          (make-tank 52 1)))
-                         
-
 
 ;<template from ListOfDrop>
 
 (define (tick-game g)
-  (make-game (tick-invaders (game-invaders g))
+  (make-game (if (= (random INVADE-RATE) 1)
+                 (append-rand-invader (game-invaders g))
+                 (non-collisions-only (tick-invaders (game-invaders g)) (game-missiles g)))
              (onscreen-only (tick-missiles (game-missiles g)))
              (tick-tank (game-tank g))))
+
+;; ListOfInvaders ListOfMissiles -> ListOfInvaders
+;; filter out invader collisions. Colissions are when an invader's x and y position + 10 meets
+;; a missiles x and y position.
+(check-expect (non-collisions-only (list I1) (list M1)) (list I1))
+(check-expect (non-collisions-only (list I1 I2 I3) (list M1 M2 M3)) (list I2 I3))
+
+;(define (non-collisions-only loi lom) loi) ;stub
+
+(define (non-collisions-only loi lom)
+  (cond [(empty? loi) empty]
+        [else 
+         (if (did-collide? (first loi) lom)
+             (non-collisions-only (rest loi) lom)
+             (cons (first loi) (non-collisions-only (rest loi) lom)))]))
+
+;; Invader ListOfMissiles -> Boolean
+;; returns true if invader collides with any missile in lom, false otherwise
+(check-expect (did-collide? I2 (list M1 M2 M3)) false)
+(check-expect (did-collide? I1 (list M1 M2 M3)) true)
+
+;(define (did-collide? i lom) true) ;stub
+
+(define (did-collide? i lom)
+  (cond [(empty? lom) false]
+        [else 
+         (if (hit? i (first lom))
+             true
+             (did-collide? i (rest lom)))]))
+
+;; Invader Missile -> Boolean
+;; returns true if missiles y pos is same as invaders y + 10 or y + 5 position, and same x position.
+(check-expect (hit? I1 M1) false)
+(check-expect (hit? I1 M2) true)
+(check-expect (hit? I1 M3) true)
+
+(define (hit? i m)
+  (and (within-range?
+        (missile-x m)
+        (- (invader-x i) (/ (image-width INVADER) 2))
+        (+ (invader-x i) (/ (image-width INVADER) 2)))
+       (within-range?
+        (missile-y m)
+        (- (invader-y i) (/ (image-height INVADER) 2))
+        (+ (invader-y i) (/ (image-height INVADER) 2)))))
+
+;; Integer Integer Integer -> Boolean
+;; checks if first arg is within range of lower bound and upper bound
+(check-expect (within-range? 100 85 95) false)
+(check-expect (within-range? 100 95 105) true)
+
+(define (within-range? x lower upper)
+  (and (>= x lower) (<= x upper)))
 
 ;; ListOfInvaders -> ListOfInvaders
 ;; produces new list of invaders that is invader-dx pixels farther
@@ -253,7 +314,7 @@
               (place-image TANK 50 TANK-Y-POS
                            (place-image INVADER 150 100
                                         (place-image INVADER 150 HEIGHT
-                                                     (place-image MISSILE 150 110
+                                                     (place-image MISSILE 150 108
                                                                   (place-image MISSILE 150 300 BACKGROUND))))))
 
 (define (render-game g)
@@ -293,7 +354,7 @@
 ;; given a list of missiles place them onto the given image
 (check-expect (place-missiles (list M1 M2) BACKGROUND)
               (place-image MISSILE 150 300
-                           (place-image MISSILE 150 110 BACKGROUND)))
+                           (place-image MISSILE 150 108 BACKGROUND)))
 
 ;(define (place-missiles lom) BACKGROUND) ; stub
 
