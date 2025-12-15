@@ -155,24 +155,53 @@
 (define (tick-game g)
   (make-game (if (= (random INVADE-RATE) 1)
                  (append-rand-invader (game-invaders g))
-                 (non-collisions-only (tick-invaders (game-invaders g)) (game-missiles g)))
-             (onscreen-only (tick-missiles (game-missiles g)))
+                 (tick-invaders (non-collisions-only-loi (game-invaders g) (game-missiles g))))
+             (onscreen-only (tick-missiles (non-collisions-only-lom (game-invaders g) (game-missiles g))))
              (tick-tank (game-tank g))))
+
+;; ListOfInvaders ListOfMissiles -> ListOfMissiles
+;; filter out missile collisions. Colissions are when an invader's x and y position + 10 meets
+;; a missiles x and y position.
+(check-expect (non-collisions-only-lom (list I1) (list M1)) (list M1))
+(check-expect (non-collisions-only-lom (list I1 I2 I3) (list M1 M2 M3)) (list M1))
+
+;(define (non-collisions-only-lom loi lom) lom) ;stub
+
+(define (non-collisions-only-lom loi lom)
+  (cond [(empty? lom) empty]
+        [else 
+         (if (did-collide-m? (first lom) loi)
+             (non-collisions-only-lom loi (rest lom))
+             (cons (first lom) (non-collisions-only-lom loi (rest lom))))]))
+
+;; Missile ListOfInvaders -> Boolean
+;; returns true if missile collides with any invader in lom, false otherwise
+(check-expect (did-collide-m? M1 (list I1 I2 I3)) false)
+(check-expect (did-collide-m? M2 (list I1 I2 I3)) true)
+
+;(define (did-collide? i lom) true) ;stub
+
+(define (did-collide-m? m loi)
+  (cond [(empty? loi) false]
+        [else 
+         (if (hit? (first loi) m)
+             true
+             (did-collide-m? m (rest loi)))]))
 
 ;; ListOfInvaders ListOfMissiles -> ListOfInvaders
 ;; filter out invader collisions. Colissions are when an invader's x and y position + 10 meets
 ;; a missiles x and y position.
-(check-expect (non-collisions-only (list I1) (list M1)) (list I1))
-(check-expect (non-collisions-only (list I1 I2 I3) (list M1 M2 M3)) (list I2 I3))
+(check-expect (non-collisions-only-loi (list I1) (list M1)) (list I1))
+(check-expect (non-collisions-only-loi (list I1 I2 I3) (list M1 M2 M3)) (list I2 I3))
 
-;(define (non-collisions-only loi lom) loi) ;stub
+;(define (non-collisions-only-loi loi lom) loi) ;stub
 
-(define (non-collisions-only loi lom)
+(define (non-collisions-only-loi loi lom)
   (cond [(empty? loi) empty]
         [else 
          (if (did-collide? (first loi) lom)
-             (non-collisions-only (rest loi) lom)
-             (cons (first loi) (non-collisions-only (rest loi) lom)))]))
+             (non-collisions-only-loi (rest loi) lom)
+             (cons (first loi) (non-collisions-only-loi (rest loi) lom)))]))
 
 ;; Invader ListOfMissiles -> Boolean
 ;; returns true if invader collides with any missile in lom, false otherwise
