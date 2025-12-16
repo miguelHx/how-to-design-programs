@@ -156,7 +156,7 @@
   (make-game (if (= (random INVADE-RATE) 1)
                  (append-rand-invader (game-invaders g))
                  (tick-invaders (non-collisions-only-loi (game-invaders g) (game-missiles g))))
-             (onscreen-only (tick-missiles (non-collisions-only-lom (game-invaders g) (game-missiles g))))
+             (tick-missiles (onscreen-only (non-collisions-only-lom (game-invaders g) (game-missiles g))))
              (tick-tank (game-tank g))))
 
 ;; ListOfInvaders ListOfMissiles -> ListOfMissiles
