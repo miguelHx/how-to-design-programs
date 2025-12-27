@@ -1,6 +1,6 @@
 ;; The first three lines of this file were inserted by DrRacket. They record metadata
 ;; about the language level of this file in a form that our tools can easily process.
-#reader(lib "htdp-intermediate-reader.ss" "lang")((modname parameterization-starter) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f ())))
+#reader(lib "htdp-intermediate-reader.ss" "lang")((modname parameterization-starter) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
 ;; parameterization-starter.rkt
 
 (* pi (sqr 4)) ;area of circle radius 4
@@ -91,12 +91,7 @@
 ;<template from ListOfNumber>
 
 (define (positive-only lon)
-  (cond [(empty? lon) empty]
-        [else
-         (if (positive? (first lon))
-             (cons (first lon)
-                   (positive-only (rest lon)))
-             (positive-only (rest lon)))]))
+  (filter2 positive? lon))
 
 
 ;; ListOfNumber -> ListOfNumber
@@ -109,9 +104,16 @@
 ;<template from ListOfNumber>
 
 (define (negative-only lon)
+  (filter2 negative? lon))
+
+
+(define (filter2 fn lon)
   (cond [(empty? lon) empty]
         [else
-         (if (negative? (first lon))
+         (if (fn (first lon))
              (cons (first lon)
-                   (negative-only (rest lon)))
-             (negative-only (rest lon)))]))
+                   (filter2 fn (rest lon)))
+             (filter2 fn (rest lon)))]))
+
+
+
