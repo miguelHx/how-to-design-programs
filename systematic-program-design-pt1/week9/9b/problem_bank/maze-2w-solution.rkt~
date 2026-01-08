@@ -132,6 +132,7 @@
             (and (<= 0 (pos-x p) (- SIZE 1))
                  (<= 0 (pos-y p) (- SIZE 1))
                  (mref m p)))]
+    
     (valid-only m (new-ps p))))
 
 
