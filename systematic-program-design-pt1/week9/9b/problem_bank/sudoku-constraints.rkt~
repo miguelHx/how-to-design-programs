@@ -22,22 +22,23 @@
 ;; number.
 ;;
 
+
 ;; Data definitions:
 
-(@htdd Val)
+(@HtDD Val)
 ;; Val is Natural
 ;; interp. value in a sudoku square, in [1, 9]
 
-(@htdd CSet)
+(@HtDD CSet)
 ;; CSet is (listof Val)
 ;; interp. a constraint set is all the values a square can still
 ;; have. Squares start with a constraint set of all 9 values.
 
-(@htdd ValOrCSet)
+(@HtDD ValOrCSet)
 ;; ValOrCSet is one of: Val   CSet
 ;; interp.  Contents of a board cell, value or constraint set if no value yet.
 
-(@htdd Board)
+(@HtDD Board)
 ;; Board is (listof ValOrCSet)   that is 81 elements long
 ;; interp.
 ;;  Visually a board is a 9x9 array of squares, where each square
@@ -46,7 +47,7 @@
 ;;  another in a linear fashion. (See interp. of Pos below for how
 ;;  we convert between (r, c) and position in a board.
 
-(@htdd Pos)
+(@HtDD Pos)
 ;; Pos is Natural[0, 80]
 ;; interp.
 ;;  the position of a square on the board, if the position is p, then
@@ -57,7 +58,7 @@
 (define (pos->c   p)   (remainder p 9))
 (define (r-c->pos r c) (+ (* r 9) c))
 
-(@htdd Unit)
+(@HtDD Unit)
 ;; Unit is (listof Pos) of length 9
 ;; interp. 
 ;;  The position of every square in a unit. There are
@@ -196,7 +197,7 @@
 (check-expect (solve BD4) BD4s)
 (check-expect (solve BD5) BD5s)
 
-;;(@template genrec arb-tree encapsulated)           
+(@template genrec arb-tree encapsulated)           
 
 (define (solve bd)
   ;;Termination argument:
@@ -301,7 +302,7 @@
 (check-expect (bref BD2 (r-c->pos 0 5)) 6)
 (check-expect (bref BD3 (r-c->pos 7 0)) 8)
 
-;;(@template Board add-param)
+(@template Board add-param)
 
 (define (bref bd p)
   (list-ref bd p))
@@ -325,7 +326,7 @@
                       X B B  B B B  B B B
                       X B B  B B B  B B B)))
 
-;;(@template Board encapsulated)
+(@template Board encapsulated)
 
 (define (bsubst bd p0 nv) 
   (local [(define (scan p vals)
@@ -371,7 +372,7 @@
                       A B C  D E F  G H I
                       A B C  D E F  G H I)))
 
-;;(@template use-abstract-fn)
+(@template use-abstract-fn)
 
 (define (setup-csets bd)
   (local [(define (cset-for-square p0)
@@ -403,7 +404,7 @@
 (check-expect (same-unit? (r-c->pos 3 4) (r-c->pos 7 5)) false) ;
 (check-expect (same-unit? (r-c->pos 0 1) (r-c->pos 7 8)) false) ;
 
-;;(@template Pos add-param)
+(@template Pos add-param)
 
 (define (same-unit? p p0)
   (local [(define r (pos->r p))
