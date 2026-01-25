@@ -1,3 +1,6 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-advanced-reader.ss" "lang")((modname ta-solver-starter) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #t #t none #f () #f)))
 ;; ta-solver-starter.rkt
 
 
@@ -14,8 +17,222 @@
 ;  followed by the most people.
 ;
 
+(define-struct chirper-user (name verified? following))
+;; ChirperUser is (make-chirper-user String Boolean (listof ChirperUser))
+;; interp. the user's name, whether or not they are verified, and a list of users they are following
+
+;; template: structural recursion (arbitrary-arity tree), encapsulate w/ local, tail-recursive w/ worklist,
+;;           context-preserving accumulator - what users we have visited so far
+
+(define (fn-for-chirper c0)
+  ;; todo is (listof ChirperUser); a worklist accumulator
+  ;; visited is (listof String); context preserving accumulator, names of users already visited
+  (local [(define (fn-for-chirper-user cu todo visited) 
+            (if (member (chirper-user-name cu) visited)
+                (fn-for-lof todo visited)
+                (fn-for-lof (append (chirper-user-following cu) todo)
+                            (cons (chirper-user-name cu) visited))))
+          (define (fn-for-lof todo visited)
+            (cond [(empty? todo) (...)]
+                  [else
+                   (fn-for-chirper-user (first todo)
+                                        (rest todo)
+                                        visited)]))]
+    (fn-for-chirper-user c0 empty empty)))
+
+(define ch-network-1-A
+  (shared ((-A- (make-chirper-user "A" true (list -B- -D-)))
+           (-B- (make-chirper-user "B" true (list -C- -E-)))
+           (-C- (make-chirper-user "C" false (list -B-)))
+           (-D- (make-chirper-user "D" true (list -E-)))
+           (-E- (make-chirper-user "E" true (list -F- -A-)))
+           (-F- (make-chirper-user "F" true (list -E-))))
+    -A-))
+(define ch-network-1-B
+  (shared ((-A- (make-chirper-user "A" true (list -B- -D-)))
+           (-B- (make-chirper-user "B" true (list -C- -E-)))
+           (-C- (make-chirper-user "C" false (list -B-)))
+           (-D- (make-chirper-user "D" true (list -E-)))
+           (-E- (make-chirper-user "E" true (list -F- -A-)))
+           (-F- (make-chirper-user "F" true (list -E-))))
+    -B-))
+(define ch-network-1-C
+  (shared ((-A- (make-chirper-user "A" true (list -B- -D-)))
+           (-B- (make-chirper-user "B" true (list -C- -E-)))
+           (-C- (make-chirper-user "C" false (list -B-)))
+           (-D- (make-chirper-user "D" true (list -E-)))
+           (-E- (make-chirper-user "E" true (list -F- -A-)))
+           (-F- (make-chirper-user "F" true (list -E-))))
+    -C-))
+(define ch-network-1-D
+  (shared ((-A- (make-chirper-user "A" true (list -B- -D-)))
+           (-B- (make-chirper-user "B" true (list -C- -E-)))
+           (-C- (make-chirper-user "C" false (list -B-)))
+           (-D- (make-chirper-user "D" true (list -E-)))
+           (-E- (make-chirper-user "E" true (list -F- -A-)))
+           (-F- (make-chirper-user "F" true (list -E-))))
+    -D-))
+(define ch-network-1-E
+  (shared ((-A- (make-chirper-user "A" true (list -B- -D-)))
+           (-B- (make-chirper-user "B" true (list -C- -E-)))
+           (-C- (make-chirper-user "C" false (list -B-)))
+           (-D- (make-chirper-user "D" true (list -E-)))
+           (-E- (make-chirper-user "E" true (list -F- -A-)))
+           (-F- (make-chirper-user "F" true (list -E-))))
+    -E-))
+(define ch-network-1-F
+  (shared ((-A- (make-chirper-user "A" true (list -B- -D-)))
+           (-B- (make-chirper-user "B" true (list -C- -E-)))
+           (-C- (make-chirper-user "C" false (list -B-)))
+           (-D- (make-chirper-user "D" true (list -E-)))
+           (-E- (make-chirper-user "E" true (list -F- -A-)))
+           (-F- (make-chirper-user "F" true (list -E-))))
+    -F-))
+
+(define ch-network-2-A
+  (shared ((-A- (make-chirper-user "A" true (list -D-)))
+           (-B- (make-chirper-user "B" true (list -D-)))
+           (-C- (make-chirper-user "C" false (list -D- -A-)))
+           (-D- (make-chirper-user "D" true (list)))
+           (-E- (make-chirper-user "E" true (list -D-)))
+           (-F- (make-chirper-user "F" true (list -D-))))
+    -A-))
+(define ch-network-2-B
+  (shared ((-A- (make-chirper-user "A" true (list -D-)))
+           (-B- (make-chirper-user "B" true (list -D-)))
+           (-C- (make-chirper-user "C" false (list -D- -A-)))
+           (-D- (make-chirper-user "D" true (list)))
+           (-E- (make-chirper-user "E" true (list -D-)))
+           (-F- (make-chirper-user "F" true (list -D-))))
+    -B-))
+(define ch-network-2-C
+  (shared ((-A- (make-chirper-user "A" true (list -D-)))
+           (-B- (make-chirper-user "B" true (list -D-)))
+           (-C- (make-chirper-user "C" false (list -D- -A-)))
+           (-D- (make-chirper-user "D" true (list)))
+           (-E- (make-chirper-user "E" true (list -D-)))
+           (-F- (make-chirper-user "F" true (list -D-))))
+    -C-))
+(define ch-network-2-D
+  (shared ((-A- (make-chirper-user "A" true (list -D-)))
+           (-B- (make-chirper-user "B" true (list -D-)))
+           (-C- (make-chirper-user "C" false (list -D- -A-)))
+           (-D- (make-chirper-user "D" true (list)))
+           (-E- (make-chirper-user "E" true (list -D-)))
+           (-F- (make-chirper-user "F" true (list -D-))))
+    -D-))
+(define ch-network-2-E
+  (shared ((-A- (make-chirper-user "A" true (list -D-)))
+           (-B- (make-chirper-user "B" true (list -D-)))
+           (-C- (make-chirper-user "C" false (list -D- -A-)))
+           (-D- (make-chirper-user "D" true (list)))
+           (-E- (make-chirper-user "E" true (list -D-)))
+           (-F- (make-chirper-user "F" true (list -D-))))
+    -E-))
+(define ch-network-2-F
+  (shared ((-A- (make-chirper-user "A" true (list -D-)))
+           (-B- (make-chirper-user "B" true (list -D-)))
+           (-C- (make-chirper-user "C" false (list -D- -A-)))
+           (-D- (make-chirper-user "D" true (list)))
+           (-E- (make-chirper-user "E" true (list -D-)))
+           (-F- (make-chirper-user "F" true (list -D-))))
+    -F-))
 
 
+;; (listof ChirperUser) -> String
+;; given a chirper network, determine which user has the most followers.
+(check-expect (most-followers empty) "")
+(check-expect (most-followers (list ch-network-1-A ch-network-1-B ch-network-1-C
+                                    ch-network-1-D ch-network-1-E ch-network-1-F))
+              "E")
+(check-expect (most-followers (list ch-network-2-A ch-network-2-B ch-network-2-C
+                                    ch-network-2-D ch-network-2-E ch-network-2-F))
+              "D")
+
+;(define (most-followers locu) "A") ;stub
+
+;; template: structural recursion, encapsulated w/ local, accumulator for result
+(define (most-followers locu0)
+  ;; visited-so-far is (listof String); users we have visited so far globally
+  (local [(define (get-global-user-with-followers-list locu visited-so-far)
+            (cond [(empty? locu) empty]
+                  [else
+                   ; locuwfc - list of chirper user with followers count
+                   (local [(define locuwfc-and-visited (fn-for-chirper-user (first locu) empty visited-so-far empty))
+                           (define locuwfc (first locuwfc-and-visited))
+                           (define visited (second locuwfc-and-visited))]
+                     (merge-locuwfc locuwfc
+                                    (get-global-user-with-followers-list (rest locu) visited)))]))
+
+          ;; (listof (pair ChirperUser Number)) (listof (pair ChirperUser Number)) -> (listof (pair ChirperUser Number))
+          ;; merges two lists of pairs together, combining follower counts and/or appending new pairs
+          (define (merge-locuwfc locuwfc1 locuwfc2)
+            (cond [(empty? locuwfc1) locuwfc2]
+                  [else
+                   (local [(define ch-user-1 (first (first locuwfc1)))
+                           (define follower-count-1 (second (first locuwfc1)))
+                           (define find-result (assoc ch-user-1 locuwfc2))]
+                     (if (not (false? find-result))
+                         (cons (list ch-user-1 (+ follower-count-1 (second find-result)))
+                               (merge-locuwfc (rest locuwfc1) (remove find-result locuwfc2)))
+                         (cons (first locuwfc1)
+                               (merge-locuwfc (rest locuwfc1) locuwfc2))))]))
+
+          ;; todo is (listof ChirperUser); a worklist accumulator
+          ;; visited is (listof String); context preserving accumulator, names of users already visited
+          ;; rsf is (listof (pair ChirperUser Number)); a context preserving accumulator, a list of
+          ;;                                            users with their follower counts
+          (define (fn-for-chirper-user cu todo visited rsf)
+            (if (member (chirper-user-name cu) visited)
+                (fn-for-lof todo visited rsf)
+                (fn-for-lof (append (chirper-user-following cu) todo)
+                            (cons (chirper-user-name cu) visited)
+                            (next-rsf rsf (chirper-user-following cu)))))
+
+          ;; (listof (pair ChirperUser Number)) (listof ChirperUser) -> (listof (pair ChirperUser Number))
+          ;; given a list of users with follower counts, and a list of users, increment follower count of
+          ;; users with counts if a user appears in following.
+          ;; if a user does not appear in users with followers, add new entry to users with followers
+          (define (next-rsf locuwfc following-list)
+            (cond [(empty? locuwfc) (map (lambda (following) (list following 1)) following-list)]
+                  [else
+                   (local [(define ch-user (first (first locuwfc)))
+                           (define follower-count (second (first locuwfc)))]
+                     (if (member? ch-user following-list)
+                         (cons (list ch-user (add1 follower-count))
+                               (next-rsf (rest locuwfc) (remove ch-user following-list)))
+                         (cons (first locuwfc)
+                               (next-rsf (rest locuwfc) following-list))))]))
+          
+          (define (fn-for-lof todo visited rsf)
+            (cond [(empty? todo) (list rsf visited)]
+                  [else
+                   (fn-for-chirper-user (first todo)
+                                        (rest todo)
+                                        visited
+                                        rsf)]))
+
+          ;; (listof (pair ChirperUser Number)) -> ChirperUser
+          ;; given a list of chirper users with follower counts, extract the user with the maximum count.
+          ;; ASSUME: input list will never be empty
+          (define (extract-max-follower-user locuwfc0)
+            (local [(define first-user (first (first locuwfc0)))
+                    (define first-follower-count (second (first locuwfc0)))
+                    ;; msf is Number; max followers so far
+                    ;; mcusf is ChirperUser; max user so far
+                    (define (find-max-user locuwfc msf mcusf)
+                      (cond [(empty? locuwfc) mcusf]
+                            [else
+                             (local [(define ch-user (first (first locuwfc)))
+                                     (define follower-cnt (second (first locuwfc)))]
+                               (if (> follower-cnt msf)
+                                   (find-max-user (rest locuwfc) follower-cnt ch-user)
+                                   (find-max-user (rest locuwfc) msf mcusf)))]))]
+              (find-max-user locuwfc0 first-follower-count first-user)))
+          (define global-user-with-followers-list (get-global-user-with-followers-list locu0 empty))]
+    (if (empty? global-user-with-followers-list)
+        ""
+        (chirper-user-name (extract-max-follower-user global-user-with-followers-list)))))
 
 ;  PROBLEM 2:
 ;
@@ -49,8 +266,6 @@
 (define RAMEN (make-ta "Ramen" 1 (list 2)))
 
 (define NOODLE-TAs (list SOBA UDON RAMEN))
-
-
 
 (define-struct assignment (ta slot))
 ;; Assignment is (make-assignment TA Slot)
