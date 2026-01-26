@@ -229,6 +229,7 @@
                                    (find-max-user (rest locuwfc) follower-cnt ch-user)
                                    (find-max-user (rest locuwfc) msf mcusf)))]))]
               (find-max-user locuwfc0 first-follower-count first-user)))
+
           (define global-user-with-followers-list (get-global-user-with-followers-list locu0 empty))]
     (if (empty? global-user-with-followers-list)
         ""
@@ -298,5 +299,66 @@
 
 (check-expect (schedule-tas NOODLE-TAs (list 1 2 3 4 5)) false)
 
+;(define (schedule-tas tas slots) empty) ;stub
 
-(define (schedule-tas tas slots) empty) ;stub
+
+;; template: all selectors for ta, mutual recursion for arbitary-arity tree for multiple potential slots to take,
+;; backtracking search when potential slot doesn't work out, accumulator for solution so far,
+;; generative recursion - stop trivial case where slots is empty
+
+(define (schedule-tas tas slots)
+  ;;Termination argument:
+  ;; trivial case:  slots is empty
+  ;; reduction step: remove slot from state when we find one in list of TAs
+  ;; argument: the reduction step removes the slots by one, so
+  ;;           eventually the slots will be empty or false will be produced if no
+  ;;           corresponding slot is found
+  (local [(define-struct state (lota slots rsf))
+          ;; State is (make-state (listof TA) (listof Slot) (listof Assignment))
+          ;; interp. the current possible search state and result so far
+
+          ;; (state-rsf s) is (listof Assignment); a context-preserving accumulator tracking the solution assignments so far
+          (define (solve--state s)
+            (if (solved? s)
+                (state-rsf s)
+                (solve--los (next-states s))))
+
+          ;; State -> Boolean
+          ;; produces true if a state is solved, otherwise false.
+          ;; a state is solved when (state-slots s) is empty
+          (define (solved? s)
+            (empty? (state-slots s)))
+
+          ;; State -> (listof State)
+          ;; given the current state, produce list of new states.
+          ;; Using the first slot from slots, find all possible open slots from tas.
+          ;; Remove ta avail slot and decrement max, remove first element of slots,
+          ;; and update rsf for each next state
+          (define (next-states s)
+            (... (state-lota s))
+            (... (state-slots s))
+            (... (state-rsf s)))
+
+          (define (solve--los los)
+            (cond [(empty? los) false]
+                  [else
+                   (local [(define try (solve--state (first los) rsf))]
+                     (if (not (false? try))
+                         try
+                         (solve--los (rest lobd) rsf)))]))]
+
+    (solve--state (make-state tas slots empty))))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
