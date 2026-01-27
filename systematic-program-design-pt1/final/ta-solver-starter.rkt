@@ -268,6 +268,12 @@
 
 (define NOODLE-TAs (list SOBA UDON RAMEN))
 
+(define MIGUEL (make-ta "Miguel" 1 (list 1 2 3 4)))
+(define ALICE (make-ta "Alice" 1 (list 1 2)))
+(define BOB (make-ta "Bob" 2 (list 3 5 6 7 8)))
+
+(define TAS-1 (list MIGUEL ALICE BOB))
+
 (define-struct assignment (ta slot))
 ;; Assignment is (make-assignment TA Slot)
 ;; interp. the TA is assigned to work the slot
@@ -298,6 +304,23 @@
                (make-assignment SOBA 1)))
 
 (check-expect (schedule-tas NOODLE-TAs (list 1 2 3 4 5)) false)
+(check-expect (schedule-tas NOODLE-TAs (list 7)) false)
+(check-expect (schedule-tas NOODLE-TAs (list 3 4)) (list (make-assignment UDON 4)
+                                                         (make-assignment SOBA 3)))
+
+(check-expect (schedule-tas TAS-1 (list 1 2)) (list (make-assignment ALICE 2)
+                                                    (make-assignment MIGUEL 1)))
+(check-expect (schedule-tas TAS-1 (list 1 2 8)) (list (make-assignment BOB 8)
+                                                      (make-assignment ALICE 2)
+                                                      (make-assignment MIGUEL 1)))
+(check-expect (schedule-tas TAS-1 (list 1 2 8)) (list (make-assignment BOB 8)
+                                                      (make-assignment ALICE 2)
+                                                      (make-assignment MIGUEL 1)))
+(check-expect (schedule-tas TAS-1 (list 1 2 8 9)) false)
+(check-expect (schedule-tas TAS-1 (list 1 2 3)) (list (make-assignment BOB 3)
+                                                      (make-assignment ALICE 2)
+                                                      (make-assignment MIGUEL 1)))
+
 
 ;(define (schedule-tas tas slots) empty) ;stub
 
@@ -306,6 +329,10 @@
 ;; backtracking search when potential slot doesn't work out, accumulator for solution so far,
 ;; generative recursion - stop trivial case where slots is empty
 
+;; (listof TA) (listof Slot) -> Schedule
+;; a list of TAs and a list of Slots, and produces one
+;; valid schedule where each Slot is assigned to a TA, and no TA is working more than their
+;; maximum shifts. If no such schedules exist, produce false.
 (define (schedule-tas tas slots)
   ;;Termination argument:
   ;; trivial case:  slots is empty
@@ -346,32 +373,66 @@
                                                  (state-slots s)
                                                  (state-rsf s)))))))
 
-          ;; !!!
-          (define (find-next-open-ta-slot lota slot) false)
+          ;; (listof TA) Slot -> Assignment or false
+          ;; given a list of TAs and a slot, find the first open slot
+          ;; and return an assignment, otherwise return false
+          (define (find-next-open-ta-slot lota slot)
+            (cond [(empty? lota) false]
+                  [else
+                   (if (and (member? slot (ta-avail (first lota)))
+                            (> (ta-max (first lota)) 0))
+                       (make-assignment (first lota) slot)
+                       (find-next-open-ta-slot (rest lota) slot))]))
 
-          ;; !!!
-          (define (remove-ta-slot lota a) lota)
+          ;; (listof TA) Assignment -> (listof TA)
+          ;; produces list of TA but without assignment TA and slot,
+          ;; with the max value reduced by 1
+          ;; ASSUME: found TA will always have max >= 1
+          (define (remove-ta-slot lota a)
+            (cond [(empty? lota) empty]
+                  [else
+                   (if (and (string=? (ta-name (first lota)) (ta-name (assignment-ta a)))
+                            (member? (assignment-slot a) (ta-avail (first lota))))
+                       (cons (make-ta (ta-name (first lota))
+                                      (sub1 (ta-max (first lota)))
+                                      (remove (assignment-slot a) (ta-avail (first lota))))
+                             (remove-ta-slot (rest lota) a))
+                       (cons (first lota)
+                             (remove-ta-slot (rest lota) a)))]))
 
           (define (solve--los los)
             (cond [(empty? los) false]
                   [else
-                   (local [(define try (solve--state (first los) rsf))]
+                   (local [(define try (solve--state (first los)))]
                      (if (not (false? try))
                          try
-                         (solve--los (rest lobd) rsf)))]))]
+                         (solve--los (rest los))))]))
 
-    (solve--state (make-state tas slots empty))))
+          ;; Schedule -> Schedule
+          ;; given a schedule (listof Assignment), generate
+          ;; the same schedule but with original TAs, since the given schedule is assumed to be modified in order
+          ;; for the search to work originally. This is just plugging the holes.
+          (define (extract-original-tas schedule)
+            (cond [(empty? schedule) empty]
+                  [else
+                   (cons (make-assignment (list-ref tas (find-ta-index (ta-name (assignment-ta (first schedule))) tas))
+                                          (assignment-slot (first schedule)))
+                         (extract-original-tas (rest schedule)))]))
 
+          ;; String -> Natural
+          ;; given a ta name, find the corresponding index in the original list of tas.
+          ;; ASSUME: name is guaranteed to be in listof TAs
+          (define (find-ta-index name lota)
+            (cond [(empty? lota) (error "TA name must exist in tas")]
+                  [else
+                   (if (string=? name (ta-name (first lota)))
+                       0
+                       (+ 1 (find-ta-index name (rest lota))))]))
 
-
-
-
-
-
-
-
-
-
+          (define sched (solve--state (make-state tas slots empty)))]
+    (if (not (false? sched))
+        (extract-original-tas sched)
+        false)))
 
 
 
