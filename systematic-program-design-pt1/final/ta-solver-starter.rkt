@@ -330,14 +330,27 @@
             (empty? (state-slots s)))
 
           ;; State -> (listof State)
-          ;; given the current state, produce list of new states.
+          ;; given the current state, produce a list of new states.
           ;; Using the first slot from slots, find all possible open slots from tas.
           ;; Remove ta avail slot and decrement max, remove first element of slots,
           ;; and update rsf for each next state
+          ;; ASSUME: states will never be empty when this is called
           (define (next-states s)
-            (... (state-lota s))
-            (... (state-slots s))
-            (... (state-rsf s)))
+            (local [(define found-ta-slot (find-next-open-ta-slot (state-lota s) (first (state-slots s))))]
+              (if (false? found-ta-slot)
+                  empty
+                  (cons (make-state (remove-ta-slot (state-lota s) found-ta-slot)
+                                    (rest (state-slots s))
+                                    (cons found-ta-slot (state-rsf s)))
+                        (next-states (make-state (remove-ta-slot (state-lota s) found-ta-slot)
+                                                 (state-slots s)
+                                                 (state-rsf s)))))))
+
+          ;; !!!
+          (define (find-next-open-ta-slot lota slot) false)
+
+          ;; !!!
+          (define (remove-ta-slot lota a) lota)
 
           (define (solve--los los)
             (cond [(empty? los) false]
